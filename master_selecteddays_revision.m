@@ -1,6 +1,6 @@
 %datapath    = 'z:\Campaign Datasets\ESA_OHP';
 
-datapath    = '..\data\OHP\';
+datapath    = 'c:\Users\tol\Documents\projects\hightower\data\OHP';
 dirs      = {'180319', '180420','180425','180525','180927','190321','190713','190902','200624','180927b','180927b','180927'};
 m_name      = {'Incoming', 'Reflect*'};
 stoptol     = 1E-4;

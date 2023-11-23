@@ -8,3 +8,5 @@ parameters.wl_right0   = [772,688.1];
 parameters.wl_right1   = [777,690];
 parameters.wl_left     = [759, 686.5]; % just left, used in new method
 parameters.wl_right    = [768, 688.1]; % just right, used in new method
+%parameters.wl_right    = [772, 688.1]; % just right, used in new method
+

@@ -31,13 +31,20 @@ wlS         = load(['..\output\SCOPE_simulation\', SCOPEoutputfolder, '\wlS.txt'
 %load SRCB.mat
 
 %% loading (earlier derived, with this script) correction spectra
-SRCA_SZA    = zeros(59,4);
+SRCA_SZA    = zeros(63,4);
 SRCB_SZA    = zeros(10,4);
-SRCAj       = zeros(59,25,4);
+SRCAj       = zeros(63,25,4);
 SRCBj       = zeros(10,25,4);
+
+SRCA        = zeros(63,1);
+SRCB        = zeros(10,1);
 
 %% the wavelength of the FLoX
 wl          = D(1).wl;
+
+%%
+SZA         = [30,45,60,75];
+cos_sza     = cos(SZA/180*pi);
 
 %% load MODTRAN data
 %soltir_tp7([ModtranFile{site} '.tp7']);
@@ -65,8 +72,7 @@ sigma       = FWHM/2.355; % see https://en.wikipedia.org/wiki/Full_width_at_half
 [ak,Fk,FFLDk,EX]= deal(NaN*ones(length(ai),1));
 f           = fscope(5,760-639);
 
-SZA         = [30,45,60,75];
-cos_zsa     = cos(SZA/180*pi);
+
 
 for iSZA = 1:length(SZA)
     switch iSZA
@@ -124,7 +130,7 @@ for iSZA = 1:length(SZA)
                 piL(k) = sum(y.*piL_MODTRAN)/sum(y);
             end
 
-            [O2A,O2B] = retrievalF(wl,E,piL,opt,aprior,0.7,1,priorweight,p,SRCA/cos_sza(SZA(iSZA))*(b==3),SRCB/cos_sza(SZA(iSZA))*(b==3));
+            [O2A,O2B] = retrievalF(wl,E,piL,opt,aprior,0.7,1,priorweight,p,SRCA/cos_sza((iSZA))*(b==3),SRCB/cos_sza((iSZA))*(b==3));
 
             Fk(j)       = O2A.F;
             FFLDk(j)    = O2A.iFLD;

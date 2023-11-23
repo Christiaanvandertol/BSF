@@ -1,5 +1,5 @@
-function [E,a,y2] = cost4F(F,input)
-
+function [E,a,y2,piLmod] = cost4F(F,input)
+%F=0;%max(0,F);
 logx        = input.logx;
 y           = input.y;
 cos_sza     = input.cos_sza;
@@ -7,6 +7,7 @@ cos_vza     = input.cos_vza;
 fwlf        = input.flwf;
 normpiL     = input.normpiL;% 
 SRC         = input.SRC;
+%residual    = input.residual;
 %y(y==0)     = 0.01; % In principle this line is not necessary but 
 %                       in my 1-yr time series of data, there were a few 
 %                       occasions where at one wl, the radiance was zero (recording error)
@@ -24,15 +25,20 @@ if input.atcor
         % The fluorescence is subtracted from the normalized radiance to
         % obtain a pure reflected radiance. The fluorescence varies
         % linearly. It must also be normalized by normpiL, and reabsorption
-        % is calculated.
+        % is calculated.        
         
         Fra = F*fwlf.* exp(logx*(a-1)./(1+cos_vza/cos_sza));
-        %y2      = (y.*normpiL - Fra)./(normpiL - F*fwlf);%
-        y2      = ( y.*normpiL - Fra)./(normpiL - F*fwlf);%
-        y2(y2<0) = 1E-12;       
-        logy2   = log(y2) - SRC*( (a-1));
-        a       = logx \ logy2; % this is linear regression
-       % keyboard
+        
+        y2      = (y.*normpiL - Fra)./(normpiL - F*fwlf);%
+%        y2      = (y.*normpiL - Fra)./(normpiL - F);%
+        
+        y2(y2<0) = 1E-12;  
+        logy2   = log(y2) -SRC(1:length(y2))*( (a-1));%- residual;
+        if priorweight>0
+            a       = input.aprior;%logx \ logy2; % this is linear regression
+        else
+            a       = logx \ logy2; % this is linear regression
+        end
     end
 else
     a = input.a;
@@ -41,7 +47,15 @@ else
     Fra = F*fwlf.* exp(logx*(a-1)./(1+cos_vza/cos_sza));
     y2      = (y.*normpiL - Fra)./(normpiL - F*fwlf);%
     logy2   = log(y2) - SRC*( (a-1));
+   % keyboard
 end
 logymod     = a*logx; % this is the modelled radiance
-E           = [logymod(I)-logy2(I); priorweight*(a - input.aprior)]; % this is the cost function
+E           = 1E3*[logymod(I)-logy2(I)+ priorweight*(a - input.aprior)]; % this is the cost function
 E           = E(~isnan(E));
+
+piLmod       = y2/a.*normpiL+F*fwlf;
+
+%a,F
+%sqrt(mean(E.^2))
+%F*1E3
+%keyboard
