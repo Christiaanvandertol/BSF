@@ -1,7 +1,14 @@
+%% note
+% this script generates the correction for the convolution by the spectral
+% response function as in the origional paper of Van der Tol et al. (2023).
+% It does not work for the O2B band and it has been improved since. Use
+% SRF_correction3.m instead.
+
 % first run the algorithm. Then we have a lot in the workshpace to work
 % with.
 
 %master_selecteddays_revision;
+%master_Cabauw2;
 
 %% options
 experiment1 = 1;
@@ -31,19 +38,20 @@ wlS         = load(['..\output\SCOPE_simulation\', SCOPEoutputfolder, '\wlS.txt'
 %load SRCB.mat
 
 %% loading (earlier derived, with this script) correction spectra
-SRCA_SZA    = zeros(63,4);
+SRCA_SZA    = zeros(59,4);
 SRCB_SZA    = zeros(10,4);
-SRCAj       = zeros(63,25,4);
+SRCAj       = zeros(59,25,4);
 SRCBj       = zeros(10,25,4);
 
-SRCA        = zeros(63,1);
+SRCA        = zeros(59,1);
 SRCB        = zeros(10,1);
 
 %% the wavelength of the FLoX
 wl          = D(1).wl;
 
 %%
-SZA         = [30,45,60,75];
+%SZA         = [30,45,60,75];
+SZA         = [75,60,45,30];
 cos_sza     = cos(SZA/180*pi);
 
 %% load MODTRAN data
@@ -63,7 +71,7 @@ s4          = importdata('FLEX-S3_SPAIN_SZA30.atm');
 % Second: we estimate L_{approx} as: exp(log(<E>r)*a
 % Third: SRC = (<L>-L_{approx}) / (1-a)
 
-ai          = (1.004:.004:1.1);
+ai          = (1.000:.004:1.1);
 priorweight = 0;
 FWHM        = 0.31;
 sigma       = FWHM/2.355; % see https://en.wikipedia.org/wiki/Full_width_at_half_maximum
@@ -107,8 +115,14 @@ for iSZA = 1:length(SZA)
 
     % normalize the band depth by the interpolated values
     piL_MODTRAN0    = E_MODTRAN.*SAIL.rsd;
+    
+  %  x = polyfit(wl(I),piL(I)./E(I),2);
+%    normr = polyval(x,wl(index2));
+%    normpiL         = normE.*normr;
+
     normpiL         = interp1([wl_MODTRAN(index2(1)),wl_MODTRAN(index2(end))],[piL_MODTRAN0(index2(1)),piL_MODTRAN0(index2(end))],wl_MODTRAN(index2));
 
+    
     for b = 1:3
         % three cases: b=1: no SIF, no correction; b=2: SIF, no correction;
         % b=3: SIF+ correction
@@ -142,7 +156,7 @@ for iSZA = 1:length(SZA)
                 SRCBj(:,j,iSZA) = (log(O2B.piL./O2B.normpiL) - aprior* log(O2B.E./O2B.normE));
             end
 
-
+%keyboard
             if iSZA==4 && j==6 && b<3 % just for one value of atmospheric path length (1.02) and SZA of 30 deg
                 figure(10), hold on
                 subplot(1,3,1)
@@ -174,9 +188,16 @@ for iSZA = 1:length(SZA)
         if b == 1
             for k = 1:size(SRCAj,1)
                 SRCA_SZA(k,iSZA) = (ai-1)' \ SRCAj(k,:,iSZA)';
+
             end
             for k = 1:size(SRCBj,1)
                 SRCB_SZA(k,iSZA) = (ai-1)' \ SRCBj(k,:,iSZA)';
+                
+                c = polyfit(ai-1,SRCBj(k,:,iSZA),1);
+
+                SRCB_slope(k,iSZA) = c(1);
+                SRCB_offset(k,iSZA) = c(2);
+
             end
         end
 
@@ -197,8 +218,23 @@ for iSZA = 1:length(SZA)
     end
 end
 
-SRCA = SRCA_SZA(:,4)*cos(30/180*pi);
-SRCB = SRCB_SZA(:,4)*cos(30/180*pi);
+SRCA = SRCA_SZA(:,4)./cos(30/180*pi).^4;
+
+SRCA = SRCA_SZA(:,4)./mean(SRCA_SZA(:,4));%mean(SRCA_SZA,2);
+%SRCA = SRCAm./mean(SRCAm);
+c = polyfit((SZA), mean(SRCA_SZA),2);
+save('SRCA_ground.mat','SRCA', 'c')
+
+
+%SRCB = SRCB_SZA(:,4)*cos(30/180*pi);
+
+SRCB = SRCB_SZA(:,4)./mean(SRCB_SZA(:,4));
+c = polyfit((SZA), mean(SRCB_SZA),2);
+save('SRCB_ground.mat','SRCB', 'c')
+
+
+%SRCB = [SRCB_offset(:,4), SRCB_slope(:,4)]./cos(30/180*pi).^4;
+
 %%
 figure(10), hold on
 

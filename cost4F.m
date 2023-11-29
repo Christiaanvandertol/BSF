@@ -34,6 +34,7 @@ if input.atcor
         
         y2(y2<0) = 1E-12;  
         logy2   = log(y2) -SRC(1:length(y2))*( (a-1));%- residual;
+
         if priorweight>0
             a       = input.aprior;%logx \ logy2; % this is linear regression
         else
@@ -42,20 +43,15 @@ if input.atcor
     end
 else
     a = input.a;
-    I = find(logx<input.logxlim); % use the whole band for fitting. 
+    %I = find(logx<input.logxlim); % use the whole band for fitting.  
+    [~,I] = min(logx);
     % Because the path length 'a' is already known, it is not necessary to iterate here.
     Fra = F*fwlf.* exp(logx*(a-1)./(1+cos_vza/cos_sza));
     y2      = (y.*normpiL - Fra)./(normpiL - F*fwlf);%
     logy2   = log(y2) - SRC*( (a-1));
-   % keyboard
 end
 logymod     = a*logx; % this is the modelled radiance
 E           = 1E3*[logymod(I)-logy2(I)+ priorweight*(a - input.aprior)]; % this is the cost function
 E           = E(~isnan(E));
 
 piLmod       = y2/a.*normpiL+F*fwlf;
-
-%a,F
-%sqrt(mean(E.^2))
-%F*1E3
-%keyboard

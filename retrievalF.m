@@ -1,5 +1,5 @@
 function [O2A,O2B] = retrievalF(wl,E,piL,opt,aprior,cos_sza,cos_vza,priorweight,p,SRCA,SRCB,flwf,residual)
- 
+
 %% loop over the bands
 for O2band = 1:2
     % select the band and interpolate the (ir)radiances over the band.
@@ -71,7 +71,7 @@ for O2band = 1:2
             input.flwf      = 1-0.1*(length(index2):-1:1)'/length(index2);
             input.atcor     = 0;
            % input.atcor     = 1;
-           input.SRC = SRCB(1:length(index2));
+           input.SRC = SRCB(1:length(index2),:);
             if ~isnan(a)    
                 input.a = a;
             else
@@ -95,7 +95,9 @@ for O2band = 1:2
     end
     
     [~,a,piLr,piLmodb]       = cost4F(F,input); % the slope of the regression, which is the ratio of optical depths
-%keyboard
+
+    %if O2band==2, keyboard, end
+    %keyboard
 %    piLmod = piL;
  %   piLmod(index2)= piLmodb;
   %  [F] =  iFLD(E,piLmod,wl,p.wl_left0(O2band),p.wl_left1(O2band),p.wl_in(O2band),p.wl_right0(O2band),p.wl_right1(O2band),p.wl_out(O2band));
