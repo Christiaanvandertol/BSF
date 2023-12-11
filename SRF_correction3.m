@@ -120,7 +120,7 @@ for O2band = 1:2
     end
 
     SRC = SRC_SZA(:,4)./mean(SRC_SZA(:,4));
-    c = polyfit((SZA), mean(SRC_SZA),2);
+    c = polyfit((SZA), mean(SRC_SZA),3);
 
     switch O2band
         case 1

@@ -9,8 +9,10 @@ for O2band = 1:2
         case 1 
             I = find( (wl>755& wl<759) | (wl>770 & wl<775));
         case 2
+            %I = [index2(1)-20:index2(1),index2(end):index2(end)+20];
             I = [index2(1)-20:index2(1),index2(end):index2(end)+20];
             
+
     end
 
     %different ways to do the following interpolation. The first one works
@@ -21,8 +23,7 @@ for O2band = 1:2
     normpiL         = normE.*normr;
    
   %  normE       	= interp1([wl(index2(1)),wl(index2(end))],[E(index2(1)),E(index2(end))],wl(index2));
-  %  normpiL         = interp1([wl(index2(1)),wl(index2(end))],[piL(index2(1)),piL(index2(end))],wl(index2));
-
+ %   normpiL         = interp1([wl(index2(1)),wl(index2(end))],[piL(index2(1)),piL(index2(end))],wl(index2));
    % normE       	= interp1([wl(index2(1)-20:index2(1));wl(index2(end):index2(end)+20)],[E(index2(1)-20:index2(1));E(index2(end):index2(end)+20)],wl(index2), 'spline');
    % normpiL       	= interp1([wl(index2(1)-20:index2(1));wl(index2(end):index2(end)+20)],[piL(index2(1)-20:index2(1));piL(index2(end):index2(end)+20)],wl(index2), 'spline');
 
@@ -85,11 +86,8 @@ for O2band = 1:2
     % irradiance and reflected radiance is linearly related.
     f           = @(Fi)cost4F(Fi,input);
     if min(input.logx)<input.logxlim 
-        %[F,RESNORM,RESIDUAL,EXITFLAG]           = lsqnonlin(f,0,-1E10,1E10,opt); %#ok<ASGLU> % F normalized by the radiance outside the band
         [F,RESNORM,RESIDUAL,EXITFLAG]           = lsqnonlin(f,0,-1E10,1E10,opt); %#ok<ASGLU> % F normalized by the radiance outside the band
-        
        % if O2band ==1 , test_sensitivity(input), end
-        
     else
         F = 0; EXITFLAG = 1;
     end
