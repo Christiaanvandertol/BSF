@@ -10,6 +10,7 @@ FWHMi       = (.01:.01:.7)';
 %% parameters for the retrieval algorithm
 stoptol     = 1E-6;
 opt         = optimset('MaxIter',30,'TolFun',stoptol);
+aprior      = 1;
 
 %% loading SCOPE reflectances and fluorescence
 SCOPEoutputfolder = 'OHP_2021-06-25-1444';
@@ -48,7 +49,7 @@ sigma       = FWHM/2.355; % see https://en.wikipedia.org/wiki/Full_width_at_half
 [piL,E]     = deal(NaN*wl);
 [ak,Fk,FFLDk,EX]= deal(NaN*ones(length(ai),1));
 f           = fscope(5,760-639);
-nwl         = [59,10];
+nwl         = [59,9];
 
 for O2band = 1:2
     SRC_SZA     = zeros(nwl(O2band),4);
@@ -94,6 +95,7 @@ for O2band = 1:2
 
         for j = 1:length(ai)
             a = ai(j);
+            aprior = a;
 
             piL_MODTRAN         = piL_MODTRAN0;
             piL_MODTRAN(index2) = normpiL2.* exp(log(piL_MODTRAN(index2)./normpiL2)*a);
@@ -115,12 +117,32 @@ for O2band = 1:2
             for k = 1:size(SRCj,1)
                 SRC_SZA(k,iSZA) = (ai-1)' \ SRCj(k,:,iSZA)';
             end
+
+  %          if j == 7 && iSZA==3
+  %               switch O2band
+  %                  case 1, O2 = O2A;
+  %                  case 2, O2 = O2B;
+  %              end
+%                 figure(2)
+%                 subplot(2,2,O2band*2-1)
+%                 plot(O2.wl,[(log(O2.piL./O2.normpiL)), aprior* log(O2.E./O2.normE)]), hold on
+%                 xlabel('wl (nm)')
+%                 ylabel('log(\piL/\piL_{norm})')
+% 
+%                 subplot(2,2,2*O2band)
+%                 plot(O2.wl,(log(O2.piL./O2.normpiL))-aprior* log(O2.E./O2.normE))
+%                 xlabel('wl (nm)')
+%                 ylabel('SRC')
+% 
+%             end
+
+
         end
 
     end
 
     SRC = SRC_SZA(:,4)./mean(SRC_SZA(:,4));
-    c = polyfit((SZA), mean(SRC_SZA),3);
+    c = polyfit((SZA), mean(SRCA_SZA),3);
 
     switch O2band
         case 1
@@ -132,4 +154,24 @@ for O2band = 1:2
             %save('SRCB_ground.mat','SRCB', 'c')
             save('SRCB.mat','SRCB', 'c')
     end
+
+%     figure(1)
+%     subplot(2,1,O2band)
+%     plot(SZA,mean(SRC_SZA),'kx')
+%     hold on
+%     plot([30:75],polyval(c,[30:75]),'k')
+%     xlabel('SZA')
+%     ylabel('mean SRC/(1-a)')
+
+% figure(3), hold on
+% meanSRCj = mean(SRCj,[1,3]);
+% plot(ai,meanSRCj,'x')
 end
+
+
+%%
+figure(3), hold on
+meanSRCj = mean(SRCj,[1,3]);
+plot(ai,meanSRCj,'x')
+xlabel('a')
+ylabel('SRC_{mean}')
