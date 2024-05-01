@@ -9,8 +9,8 @@ for O2band = 1:2
         case 1 
             I = find( (wl>755& wl<759) | (wl>770 & wl<775));
         case 2
-            %I = [index2(1)-20:index2(1),index2(end):index2(end)+20];
             I = [index2(1)-20:index2(1),index2(end):index2(end)+20];
+            %I = [index2(1)-2:index2(1),index2(end):index2(end)+2];
             
 
     end
@@ -93,7 +93,7 @@ for O2band = 1:2
     end
     
     [~,a,piLr,piLmodb]       = cost4F(F,input); % the slope of the regression, which is the ratio of optical depths
-
+keyboard
     %if O2band==2, keyboard, end
     %keyboard
 %    piLmod = piL;

@@ -1,4 +1,4 @@
-function parameters = set_parameters
+    function parameters = set_parameters
 
 parameters.wl_in       = [761,686.9]; % next 6 coefficients are all used in iFLD
 parameters.wl_out      = [755,686.5];

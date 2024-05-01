@@ -28,7 +28,7 @@ if input.atcor
         % is calculated.        
         
         Fra = F*fwlf.* exp(logx*(a-1)./(1+cos_vza/cos_sza));
-        
+        keyboard
         y2      = (y.*normpiL - Fra)./(normpiL - F*fwlf);%
 %        y2      = (y.*normpiL - Fra)./(normpiL - F);%
         
