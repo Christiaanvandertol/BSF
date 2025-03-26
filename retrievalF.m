@@ -9,14 +9,15 @@ for O2band = 1:2
         case 1 
             I = find( (wl>755& wl<759) | (wl>770 & wl<775));
         case 2
-            I = [index2(1)-20:index2(1),index2(end):index2(end)+20];
+            I = [index2(1)-5:index2(1),index2(end):index2(end)+5];
+            %I = [index2(1)-20:index2(1),index2(end):index2(end)+20];
             %I = [index2(1)-2:index2(1),index2(end):index2(end)+2];
             
 
     end
 
     %different ways to do the following interpolation. The first one works
-    %best for synhtetic and real data.
+    %best for synthetic and real data.
     normE       	= interp1(wl(I),E(I),wl(index2));
     x = polyfit(wl(I),piL(I)./E(I),2);
     normr = polyval(x,wl(index2));
@@ -64,7 +65,7 @@ for O2band = 1:2
             input.logxlim   = 0;% -0.7 
             input.SRC       = SRCA;
         case 2 %O2B
-            % I do the fitting of the opticalp path lenght only for the O2A band, not the
+            % I do the fitting of the optical path lenght only for the O2A band, not the
             % O2B. For the O2B band I adopt the fit obtained with O2A.
             % This is because the O2B filling is much less strong, it is
             % easier to use the O2A for this purpose.
@@ -72,7 +73,12 @@ for O2band = 1:2
             input.flwf      = 1-0.1*(length(index2):-1:1)'/length(index2);
             input.atcor     = 0;
            % input.atcor     = 1;
-           input.SRC = SRCB(1:length(index2),:);
+           
+           %if length(index2)>length(SRCB)
+           %    input.SRC = zeros(length(index2),1);
+           %else
+               input.SRC = SRCB;%(1:length(index2),:);
+           %end
             if ~isnan(a)    
                 input.a = a;
             else
@@ -80,7 +86,7 @@ for O2band = 1:2
             end
             input.logxlim = 0;%-0.3;
  %           keyboard
-    end
+    end 
     
     % the following iteratively changes fluorescence until the depth of the
     % irradiance and reflected radiance is linearly related.
@@ -93,7 +99,7 @@ for O2band = 1:2
     end
     
     [~,a,piLr,piLmodb]       = cost4F(F,input); % the slope of the regression, which is the ratio of optical depths
-keyboard
+%keyboard
     %if O2band==2, keyboard, end
     %keyboard
 %    piLmod = piL;
@@ -108,6 +114,14 @@ keyboard
     O2.wl = wl(index2);
     O2.F = F;% fluorescence, the mean over the band (improve if more accuracy is needed)
     O2.E = exp(input.logx).*normE;%E(index2)./normE;
+        
+    %atmopherically corrected irradiance and reflected radiance (may need
+    %SRC correction)
+    %if O2band == 2, keyboard, end
+    O2.E0 = exp(input.logx * (1+(a-1)*cos_vza/(cos_sza+cos_vza))).*normE;
+    O2.piLr0 = exp(log(piLr) / (1+(a-1)*cos_sza/(cos_sza+cos_vza))).*normpiL;
+    O2.piL0 = exp(log(input.y)/ (1+(a-1)*cos_sza/(cos_sza+cos_vza))).*normpiL;
+
     O2.piL = input.y.*normpiL;
     O2.piLr = piLr.*normpiL;
     O2.normpiL = normpiL;
@@ -115,6 +129,7 @@ keyboard
     O2.a = a;
     O2.EXITFLAG =  EXITFLAG;
     O2.iFLD = iFLDr;
+    O2.wlindex = index2;
     O2.RESIDUAL = RESIDUAL;
    % keyboard
 

@@ -28,7 +28,7 @@ if input.atcor
         % is calculated.        
         
         Fra = F*fwlf.* exp(logx*(a-1)./(1+cos_vza/cos_sza));
-        keyboard
+      %  keyboard
         y2      = (y.*normpiL - Fra)./(normpiL - F*fwlf);%
 %        y2      = (y.*normpiL - Fra)./(normpiL - F);%
         
@@ -41,12 +41,14 @@ if input.atcor
             a       = logx \ logy2; % this is linear regression
         end
     end
+ %   keyboard
 else
     a = input.a;
     %I = find(logx<input.logxlim); % use the whole band for fitting.  
     [~,I] = min(logx);
     % Because the path length 'a' is already known, it is not necessary to iterate here.
     Fra = F*fwlf.* exp(logx*(a-1)./(1+cos_vza/cos_sza));
+    
     y2      = (y.*normpiL - Fra)./(normpiL - F*fwlf);%
     logy2   = log(y2) - SRC*( (a-1));
 end
@@ -55,3 +57,4 @@ E           = 1E3*[logymod(I)-logy2(I)+ priorweight*(a - input.aprior)]; % this 
 E           = E(~isnan(E));
 
 piLmod       = y2/a.*normpiL+F*fwlf;
+

@@ -1,10 +1,12 @@
 %datapath    = 'z:\Campaign Datasets\ESA_OHP';
 %clear all %#ok<CLALL>
 
-dirs        = dir('c:\Users\tol\Documents\projects\DEFLOX\ESA_DEFLOX_CCN4\DATA\cabauw\flox016m\2*' );%{'221009'};
+%dirs        = dir('c:\Users\tol\Documents\projects\DEFLOX\ESA_DEFLOX_CCN4\DATA\cabauw\flox016m\2*' );%{'221009'};
+dirs        = dir('c:\Users\tol\projects\FRM4FLUO\Cabauw\flox100m\2*' );%{'221009'};
+%dirs        = dir('y:\projects\ESA_DEFLOX_CCN4\DATA\cabauw\flox016m\2*' );%{'221009'};
 
 for d =1:length(dirs)
-    for flx = 1:3
+    for flx = 2:2
         switch flx
             case 1, flox        = 'flox200m'; height = 200; clear('Out')
             case 2, flox        = 'flox100m'; height = 100; clear('Out')
@@ -12,8 +14,8 @@ for d =1:length(dirs)
         end
 
         %flox        = 'ground_Flox
-        datapath    = '..\documents\projects\DEFLOX\ESA_DEFLOX_CCN4\Data\Cabauw\';
-
+        %datapath    = 'y:\projects\ESA_DEFLOX_CCN4\Data\Cabauw\';
+        datapath    = 'c:\Users\tol\projects\FRM4FLUO\Cabauw\';
         m_name      = {'Incoming*fluo*', 'Reflect*fluo*','Incoming*full*', 'Reflect*full*'};
         stoptol     = 1E-4;
         stopx       = 1E-3;
@@ -34,14 +36,22 @@ for d =1:length(dirs)
         %  flwf.O2B = FtarbO2B;
 
         %%
+        load MODTRAN.mat
 
-        load SRCA_ground.mat
-        cO2A = c;
+        FLOX.FWHM = 0.31;
+        FLOX.wl = D(1).wl;
+        [SRCA,SRCB,cO2A,cO2B] = calc_SRC(MODTRAN,FLOX,p,'cabauw100');
+    %    [SRCA,SRCB,SRCH,cO2A,cO2B,cH2O] = calc_SRC_H2O(MODTRAN,FLOX,p,'cabauw100');
+
+        %load('y:\projects\ESA_DEFLOX_CCN4\BSF\SRCA_ground.mat')
+        load('SRCA_cabauw100.mat')
+        load('SRCB_cabauw100.mat')
+        %cO2A = c;
         %load SRCA_BRDF.mat
-        load SRCB_ground.mat
-        cO2B = c;
+        %load('y:\projects\ESA_DEFLOX_CCN4\BSF\SRCB_ground.mat')
+        %cO2B = c;
 
-        %SCRA = 0*SRCA;
+        %  SCRA = 0*SRCA;
 
         for priorcase = 1:1
             switch priorcase
@@ -64,7 +74,7 @@ for d =1:length(dirs)
                             %D(m).filename = [datapath '/' dirs{k} '/ground_flox/' fileinfo(1).name];%#ok<*SAGROW> %[datapath '/' dirs(k).name '/' m_name{m} '_radiance_FLUO_*.csv']; %#ok<*SAGROW>
                             D(m).filename = [datapath flox '/' dirs(d).name '/' files(m).fileinfo(z).name];%#ok<*SAGROW> %[datapath '/' dirs(k).name '/' m_name{m} '_radiance_FLUO_*.csv']; %#ok<*SAGROW>
                             [D(m).wl,D(m).data,D(m).time] = readFXBox(D(m).filename,4+2*(m>2));
-                           % keyboard
+                            % keyboard
                         end
                         outfilename = ['cabauw' flox dirs(d).name];
 
@@ -77,17 +87,17 @@ for d =1:length(dirs)
                     x = dirs(d).name;
                     Ei      = D(1).data;
                     piLi    = D(2).data;
-                    
+
                     Ei      = Ei(:,1:length(D(1).time));
                     piLi    = piLi(:,1:length(D(2).time));
 
                     % filter on NDVI, to remove some erroneous FloX data
-        %            C       = find(Ei(600,:)./Ei(150,:)<1);
-        
-         %           E       = Ei(:,C);
-         %           piL     = piLi(:,C);
-%                    if k>10, x1 = 0; end
-                    
+                    %            C       = find(Ei(600,:)./Ei(150,:)<1);
+
+                    %           E       = Ei(:,C);
+                    %           piL     = piLi(:,C);
+                    %                    if k>10, x1 = 0; end
+
                     E = Ei; % comment out for NDVI filtering
                     piL = piLi;
 
@@ -96,7 +106,7 @@ for d =1:length(dirs)
                     month   = floor( (dd-1E4*floor(dd/1E4))/100);
                     dom     = dd-1E2*floor(dd*1E-2);
                     Doy     = datenum(year,month,dom)-datenum(year-1,12,31);
-%                    cos_sza = cos(calczenithangle(Doy,24*D(m).time(C),0,0,Long,Lat));
+                    %                    cos_sza = cos(calczenithangle(Doy,24*D(m).time(C),0,0,Long,Lat));
                     cos_sza = cos(calczenithangle(Doy,24*D(1).time,0,0,Long,Lat));
                     cos_sza = max(0.17,cos_sza);
                     SZA     = 180/pi*acos(cos_sza);
@@ -114,23 +124,28 @@ for d =1:length(dirs)
                         Out.time             = D(1).time;
                         %apriori                  = 1+x1*(1+cos_sza./cos_vza)*0;
                         apriori                 = 1+x1*(1+cos_sza./cos_vza);
+                     z%   aprior = 0*apriori+1.03;
+                                            [Out.Efluo,Out.E0fluo]        = deal(D(1).data);
+                    [Out.piLfluo,Out.piL0fluo]    = deal(D(2).data);
+
                         for I = 1:L%129:136%L
                             wl                  = D(1).wl;
                             if mean(E(:,I))>1E-3
 
                                 % the prior information about a
 
-                        %        if I>length(apriori), keyboard, end
+                                %        if I>length(apriori), keyboard, end
                                 aprior              = apriori(I);
 
                                 % this is the actual retrieval
                                 %keyboard
                                 J = max(1,I-5):min(L,I+5);
+                                J = I;%
                                 %[O2A(I), O2B(I)]    = retrievalF(wl,mean(E(:,J),2),mean(piL(:,J),2),opt,aprior,cos_sza(I),cos_vza,priorweight,p,SRCA/cos_sza(I),SRCB/cos_sza(I));%,meanresidual); %#ok<*SAGROW>
                                 %keyboard
 
                                 [O2A(I), O2B(I)]    = retrievalF(wl,mean(E(:,J),2),mean(piL(:,J),2),opt,aprior,cos_sza(I),cos_vza,priorweight,p,SRCA.*polyval(cO2A,acos(cos_sza(I))/pi*180) ,SRCB.*polyval(cO2B,acos(cos_sza(I))/pi*180) );%,meanresidual); %#ok<*SAGROW>
-                                keyboard
+                                %                          keyboard
                                 %[O2A(I), O2B(I)]    = retrievalF(wl,E(:,I),piL(:,I),opt,aprior,cos_sza(I),cos_vza,priorweight,p,SRCA/cos_sza(I),SRCB/cos_sza(I));%,meanresidual); %#ok<*SAGROW>
 
                                 %Out(k).F(I,:)       = [mean(O2A(I).F) mean(O2B(I).F)];
@@ -156,20 +171,26 @@ for d =1:length(dirs)
                                 Out.Efull        = D(3).data;
                                 Out.piLfull      = D(4).data;
                                 Out.timefull     = D(3).time;
-                                keyboard
+
+                                                            Out.E0fluo(O2A(I).wlindex,I) = O2A(I).E0;
+                            Out.piL0fluo(O2A(I).wlindex,I) = O2A(I).piL0;
+                            Out.E0fluo(O2B(I).wlindex,I) = O2B(I).E0;
+                            Out.piL0fluo(O2B(I).wlindex,I) = O2B(I).piL0;
+                                %                      keyboard
                             end
                         end
                     end
                     % save the output
 
-                    save(['../output/' num2str(priorcase) outfilename '.mat'], 'Out')
-                    csvoutput = [Out.time*24, Out.F];
-                    csvwrite(['../output/' num2str(priorcase) outfilename '.csv'],csvoutput)
+                    % save(['../output/prior_noSRA' num2str(priorcase) outfilename '.mat'], 'Out')
+                    %  csvoutput = [Out.time*24, Out.F];
+                    %  csvwrite(['../output/prior_noSRA' num2str(priorcase) outfilename '.csv'],csvoutput)
                     %clear('Out')
                 end
             end
         end
     end
+    Out_all(d) = Out;
 end
 
 
@@ -185,12 +206,15 @@ end
 %             end
 %
 %             wl = Out.wlfull;
-%             save('c:\Users\tol\Documents\models\retrieval_develop\data\measured\ATMOFLEX\r.txt','r','-ascii')
-%             save('c:\Users\tol\Documents\models\retrieval_develop\data\measured\ATMOFLEX\wl.txt','wl','-ascii')
+%             % save('c:\Users\tol\Documents\models\retrieval_develop\data\measured\ATMOFLEX\r.txt','r','-ascii')
+%             % save('c:\Users\tol\Documents\models\retrieval_develop\data\measured\ATMOFLEX\wl.txt','wl','-ascii')
+
+%             save('c:\Users\tol\retrieval_RTMO-master\data\measured\ATMOFLEX\r.txt','r','-ascii')
+%             save('c:\Users\tol\retrieval_RTMO-master\models\retrieval_develop\data\measured\ATMOFLEX\wl.txt','wl','-ascii')
 %
 %             %% run retrieval
 %             % retrieve the vegetation properties from the measured reflectance
-%             run('c:\Users\tol\Documents\models\retrieval_develop\canopy_soil retrieval\master')
+%             % run('c:\Users\tol\Documents\models\retrieval_develop\canopy_soil retrieval\master')
 %             %% run SCOPE
 %             % place the retrieved values in the SCOPE input
 %             run('..\code\SCOPE2\SCOPE')

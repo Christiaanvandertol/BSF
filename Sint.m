@@ -15,6 +15,7 @@ function int = Sint(y,x)
     end
 
     step = x(2:nx) - x(1:nx-1);
+   % keyboard
     mean = .5 * (y(:,1:nx-1) + y(:,2:nx));
     int  = mean * step;
 end
