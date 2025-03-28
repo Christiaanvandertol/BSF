@@ -1,6 +1,12 @@
 %datapath    = 'z:\Campaign Datasets\ESA_OHP';
 %clear all %#ok<CLALL>
 
+
+if ~exist('../output','dir')
+    mkdir('../output/')
+end
+
+
 %flox = 'ground_flox';
 flox = 'airflox';
 dirs        = dir( ['c:\Users\tol\projects\FRM4FLUO\' flox '\2*'] );%{'221009'};
