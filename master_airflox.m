@@ -47,13 +47,12 @@ p           = set_parameters;
 load MODTRAN.mat
 
 FLOX.FWHM = 0.31;
-FLOX.wl = D(1).wl;
 %[SRCA,SRCB,cO2A,cO2B] = calc_SRC(MODTRAN,FLOX,p,'test');
 %[SRCA,SRCB,SRCH,cO2A,cO2B,cH2O] = calc_SRC_H2O(MODTRAN,FLOX,p,'testH2O');
 
 load SRCA_testH2O.mat
 load SRCB_testH2O.mat
-load SRCH_testH2O.mat
+%load SRCH_testH2O.mat
 
 
 %load SRCA_ground.mat
@@ -72,7 +71,6 @@ for priorcase = 1:1
             files(m).fileinfo = dir([datapath '/' dirs(k).name '/' m_name{m}]);
         end
         for z = 1:length(files(1).fileinfo)
-            for m = 1:2
                 ifdata = 1;
                 if isempty(files(1).fileinfo)
                     ifdata = 0;
@@ -92,7 +90,6 @@ for priorcase = 1:1
                     %        D2(m).filename = [datapath '/' dirs{k} '/' fileinfo2(1).name];%#ok<*SAGROW> %[datapath '/' dirs(k).name '/' m_name{m} '_radiance_FLUO_*.csv']; %#ok<*SAGROW>
                     %       [D2(m).wl,D2(m).data,D2(m).time] = readFXBox(D2(m).filename);
                 end
-            end
             if ifdata
                 D(1).filename
                 x = dirs(k).name;
@@ -135,8 +132,8 @@ for priorcase = 1:1
 
                             % this is the actual retrieval
                             %keyboard
-                            [O2A(I), O2B(I), H2O(I)]    = retrievalF_H2O(wl,E(:,I),piL(:,I),opt,aprior,cos_sza(I),cos_vza,priorweight,p,SRCA.*polyval(cO2A,acos(cos_sza(I))/pi*180) ,SRCB.*polyval(cO2B,acos(cos_sza(I))/pi*180),SRCH.*polyval(cH2O,acos(cos_sza(I))/pi*180));%,meanresidual); %#ok<*SAGROW>
-                            %[O2A(I), O2B(I)]    = retrievalF(wl,E(:,I),piL(:,I),opt,aprior,cos_sza(I),cos_vza,priorweight,p,SRCA ,SRCB);%,
+                            %[O2A(I), O2B(I)]    = retrievalF(wl,E(:,I),piL(:,I),opt,aprior,cos_sza(I),cos_vza,priorweight,p,SRCA.*polyval(cO2A,acos(cos_sza(I))/pi*180) ,SRCB.*polyval(cO2B,acos(cos_sza(I))/pi*180),SRCH.*polyval(cH2O,acos(cos_sza(I))/pi*180));%,meanresidual); %#ok<*SAGROW>
+                            [O2A(I), O2B(I)]    = retrievalF(wl,E(:,I),piL(:,I),opt,aprior,cos_sza(I),cos_vza,priorweight,p,SRCA ,SRCB);%,
                             %Out(k).F(I,:)       = [mean(O2A(I).F) mean(O2B(I).F)];
                             Out.F(I,:)       = [(O2A(I).F) (O2B(I).F)];
                             Out.FiFLD(I,:)   = [(O2A(I).iFLD) (O2B(I).iFLD)];
@@ -154,12 +151,12 @@ for priorcase = 1:1
                             Out.piL0fluo(O2A(I).wlindex,I) = O2A(I).piL0;
                             Out.E0fluo(O2B(I).wlindex,I) = O2B(I).E0;
                             Out.piL0fluo(O2B(I).wlindex,I) = O2B(I).piL0;
-                            Out.E0fluo(H2O(I).wlindex,I) = H2O(I).E0;
-                            Out.piL0fluo(H2O(I).wlindex,I) = H2O(I).piL0;
+                            %Out.E0fluo(H2O(I).wlindex,I) = H2O(I).E0;
+                           % Out.piL0fluo(H2O(I).wlindex,I) = H2O(I).piL0;
                             
                             Out.O2A(I)       = O2A(I);
                             Out.O2B(I)       = O2B(I);
-                            Out.H2O(I)       = H2O(I);
+                           % Out.H2O(I)       = H2O(I);
 
 
                             Out.cos_sza      = cos_sza;
